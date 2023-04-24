@@ -33,7 +33,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/login/access")
                 .permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/register")
-                .hasRole("ADMIN")
+                .permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/users")
                 .hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/delete/**")
