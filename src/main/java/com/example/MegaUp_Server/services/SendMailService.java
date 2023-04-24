@@ -76,7 +76,7 @@ public class SendMailService{
 
             Resource file = resourceLoader.getResource("file:files\\" + orcamento);
             helper.addAttachment(file.getFilename(), file);
-            helper.setText(mailBody.attachmentBody());
+            helper.setText(mailBody.attachmentBody(empresa));
             javaMailSender.send(mimeMessage);
         }
         catch(Exception e){
