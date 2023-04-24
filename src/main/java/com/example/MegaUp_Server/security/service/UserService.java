@@ -70,12 +70,6 @@ public class UserService {
             userModel.setRoles(List.of(generateRoleRead()));
         }
 
-        //-------------------
-        RoleModel roleModel = new RoleModel();
-        roleModel.setRoleName(RoleName.ROLE_ADMIN);
-        userModel.setRoles(List.of(generateRoleUser(), roleModel));
-        //-------------------
-
         repository.save(userModel);
 
     }
