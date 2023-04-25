@@ -14,7 +14,6 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -215,8 +214,8 @@ public class ServicoService {
             List<Etapa> update = servico.getEtapas();
             etapa.setIden(update.size()+1L);
             update.add(etapa);
-            Collections.sort(update, Comparator.comparingLong(Etapa::getIden));
-            
+            update.sort(Comparator.comparingLong(Etapa::getIden));
+
             servico.setEtapas(update);
             repository.save(servico);
             return;
