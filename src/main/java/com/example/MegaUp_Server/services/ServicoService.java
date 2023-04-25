@@ -142,6 +142,9 @@ public class ServicoService {
         valoresServico.setDesconto(servico.getDesconto());
         valoresServico.setEntrada(new Entrada(servico.getPorcentagemEntrada(), servico.getValorEntrada(), servico.getFormaPagamentoEntrada().name()));
         valoresServico.setPagamentoFinal(new PagamentoFinal(servico.getValorPagamentoFinal(), servico.getFormaPagamentoFinal().name()));
+        List<Etapa> etapas = servico.getEtapas();
+        etapas.sort(Comparator.comparingLong(Etapa::getIden));
+        servico.setEtapas(etapas);
         valoresServico.setEtapas(servico.getEtapas());
         return valoresServico;
     }
