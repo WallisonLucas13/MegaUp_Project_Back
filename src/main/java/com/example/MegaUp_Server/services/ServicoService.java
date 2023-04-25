@@ -199,6 +199,7 @@ public class ServicoService {
 
     @Transactional
     public void addEtapa(Long idServico, Etapa etapa) throws IllegalArgumentException{
+        System.out.println("ENTROU NO SERVICO");
 
         Servico servico = repository.findById(idServico)
                 .orElseThrow(() -> new ObjetoInexistenteException("Inexistente"));
@@ -206,6 +207,7 @@ public class ServicoService {
         if(servico.getEtapas() == null){
             servico.setEtapas(List.of());
         }
+        System.out.println("CHEGOU NO CALC");
 
         int tetoGastos = Integer.parseInt(servico.getValorPagamentoFinal()) - calcEtapas(servico.getEtapas());
         System.out.println(tetoGastos);

@@ -128,6 +128,7 @@ public class ServicoController {
     @PostMapping("/Etapa")
     public ResponseEntity<String> addEtapa(@RequestParam("id") Long id, @RequestBody Etapa etapa){
         try {
+            System.out.println("ENTROU");
             service.addEtapa(id, etapa);
             return ResponseEntity.status(HttpStatus.OK).build();
         }
