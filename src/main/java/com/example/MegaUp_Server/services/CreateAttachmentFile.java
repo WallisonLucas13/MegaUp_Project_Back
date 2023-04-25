@@ -86,11 +86,12 @@ public class CreateAttachmentFile {
         fontEndQuestionsStyled.setColor(BaseColor.BLACK);
         fontEndQuestionsStyled.setSize(15);
         fontEndQuestionsStyled.setFamily(FontFactory.TIMES_ITALIC);
+        fontEndQuestionsStyled.setStyle(Font.BOLDITALIC);
 
         //TITLE
-        Paragraph title = new Paragraph(new Phrase(20f,empresa, FontFactory.getFont(FontFactory.HELVETICA, 18F, new BaseColor(255, 187, 51))));
+        Paragraph title = new Paragraph(new Phrase(20f,empresa, FontFactory.getFont(FontFactory.COURIER_BOLD, 18F, BaseColor.BLACK)));
         title.setAlignment(Element.ALIGN_CENTER);
-        Font fontDeLink = new Font(Font.FontFamily.HELVETICA, 13, Font.BOLD, new BaseColor(255, 187, 51));
+        Font fontDeLink = new Font(Font.FontFamily.HELVETICA, 13, Font.BOLD, BaseColor.BLACK);
         Paragraph subtitle = new Paragraph(new Phrase(14F, empresaSubTitle, fontDeLink));
         subtitle.setAlignment(Element.ALIGN_CENTER);
 
@@ -313,7 +314,7 @@ public class CreateAttachmentFile {
 
         //Formas Pagamento
         Phrase headerPagamentoForm = new Phrase("Formas de Pagamento: ", fontEndQuestionsSubtitle);
-        Phrase bodyPagamentoForm = new Phrase("DÉBITO | CRÉDITO | PIX | DINHEIRO", FontFactory.getFont(FontFactory.HELVETICA, 12, new BaseColor(255, 187, 51)));
+        Phrase bodyPagamentoForm = new Phrase("DÉBITO | CRÉDITO | PIX | DINHEIRO", FontFactory.getFont(FontFactory.HELVETICA, 12, BaseColor.BLACK));
         headerPagamentoForm.add(bodyPagamentoForm);
 
         Paragraph formaPagamentoFinal = new Paragraph(headerPagamentoForm);
@@ -329,14 +330,14 @@ public class CreateAttachmentFile {
         Date date = new Date();
         SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy");
 
-        Paragraph time = new Paragraph(new Phrase(12F,"Data de Emissão: " + format.format(date), FontFactory.getFont(FontFactory.HELVETICA, 11, new BaseColor(220, 221, 216))));
+        Paragraph time = new Paragraph(new Phrase(12F,"Data de Emissão: " + format.format(date), FontFactory.getFont(FontFactory.HELVETICA, 11, new BaseColor(123, 123, 123, 1))));
         time.setAlignment(Element.ALIGN_RIGHT);
         time.setSpacingBefore(9f);
         document.add(time);
         //------------------------------------------------------------------------------------------------
 
         //Mensagem Biblica
-        Paragraph msg = new Paragraph(new Phrase(14F, "O Senhor é o meu pastor: nada me faltará.\nSalmos 23:1", FontFactory.getFont(FontFactory.TIMES_ITALIC, 11, new BaseColor(220, 221, 216))));
+        Paragraph msg = new Paragraph(new Phrase(14F, "O Senhor é o meu pastor: nada me faltará.\nSalmos 23:1", FontFactory.getFont(FontFactory.TIMES_ITALIC, 11, new BaseColor(123, 123, 123, 1))));
         msg.setAlignment(Element.ALIGN_LEFT);
         msg.setSpacingBefore(-14f);
         document.add(msg);
