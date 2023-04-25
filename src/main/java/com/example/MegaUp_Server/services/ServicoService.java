@@ -211,6 +211,7 @@ public class ServicoService {
 
         int tetoGastos = Integer.parseInt(servico.getValorPagamentoFinal()) - calcEtapas(servico.getEtapas());
         System.out.println(tetoGastos);
+        System.out.println(etapa.getValor());
 
         if(Integer.parseInt(etapa.getValor()) <= tetoGastos){
             System.out.println(tetoGastos);
