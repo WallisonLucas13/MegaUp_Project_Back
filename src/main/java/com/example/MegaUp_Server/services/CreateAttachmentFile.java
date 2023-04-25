@@ -289,7 +289,7 @@ public class CreateAttachmentFile {
 
         //ENTRADA
         Phrase headerEntrada = new Phrase("Entrada: ", fontEndQuestionsStyled);
-        Phrase bodyEntrada = new Phrase(servico.getPorcentagemEntrada() + "% | " + "R$ " + servico.getValorEntrada() + ",00", fontImportant);
+        Phrase bodyEntrada = new Phrase(servico.getPorcentagemEntrada() + "% | " + "R$ " + servico.getValorEntrada() + ",00", fontValues);
         headerEntrada.add(bodyEntrada);
 
         Paragraph entrada = new Paragraph(headerEntrada);

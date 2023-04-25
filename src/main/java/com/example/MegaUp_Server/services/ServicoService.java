@@ -6,6 +6,7 @@ import com.example.MegaUp_Server.dtos.PagamentoFinal;
 import com.example.MegaUp_Server.dtos.ValoresServico;
 import com.example.MegaUp_Server.enums.FormaPagamento;
 import com.example.MegaUp_Server.exceptions.ObjetoInexistenteException;
+import com.example.MegaUp_Server.models.Etapa;
 import com.example.MegaUp_Server.models.Material;
 import com.example.MegaUp_Server.models.Servico;
 import com.example.MegaUp_Server.repositories.ServicoRepository;
@@ -193,6 +194,30 @@ public class ServicoService {
 
         servico.setFormaPagamentoFinal(formatarFormaPagamento(pagamentoFinal.getFormaPagamento()));
         repository.save(servico);
+    }
+
+    @Transactional
+    public void addEtapa(Long idServico, Etapa etapa) throws IllegalArgumentException{
+
+        Servico servico = repository.findById(idServico)
+                .orElseThrow(() -> new ObjetoInexistenteException("Inexistente"));
+
+        int tetoGastos = Integer.parseInt(servico.getValorPagamentoFinal()) - calcEtapas(servico.getEtapas());
+
+        if(Integer.parseInt(etapa.getValor()) <= tetoGastos){
+            List<Etapa> update = servico.getEtapas();
+            update.add(etapa);
+            servico.setEtapas(update);
+            repository.save(servico);
+        }
+
+        throw new IllegalArgumentException("Valor máximo ultrapassado!");
+
+    }
+
+    private int calcEtapas(List<Etapa> etapas){
+        return etapas.stream().map(etapa -> {return Integer.parseInt(etapa.getValor());})
+                .reduce(0, (a, b) -> a+b);
     }
 
     private FormaPagamento formatarFormaPagamento(String forma){

@@ -62,6 +62,8 @@ public class SecurityConfig {
                 .hasRole("USER")
                 .requestMatchers(HttpMethod.POST, "/Servicos/Orcamento")
                 .hasRole("USER")
+                .requestMatchers(HttpMethod.POST, "/Servicos/Etapa")
+                .hasRole("USER")
                 .requestMatchers(HttpMethod.POST, "/Material/New")
                 .hasRole("USER")
                 .requestMatchers(HttpMethod.PUT, "/Material/Edit")

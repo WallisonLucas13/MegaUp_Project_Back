@@ -7,6 +7,7 @@ import com.example.MegaUp_Server.dtos.PagamentoFinal;
 import com.example.MegaUp_Server.dtos.ServicoDto;
 import com.example.MegaUp_Server.dtos.ValoresServico;
 import com.example.MegaUp_Server.exceptions.ObjetoInexistenteException;
+import com.example.MegaUp_Server.models.Etapa;
 import com.example.MegaUp_Server.models.Servico;
 import com.example.MegaUp_Server.services.ServicoService;
 import jakarta.validation.Valid;
@@ -120,6 +121,19 @@ public class ServicoController {
     public ResponseEntity<String> sendOrcamento(@RequestParam("id") Long id, @RequestBody OrcamentoAdressTo adressTo){
         service.sendOrcamento(id, adressTo);
         return ResponseEntity.status(HttpStatus.OK).build();
+    }
+    //------------------------------------------------------------------------------------
+
+    //ADD ETAPA - REGRA NEGOCIO
+    @PostMapping("/Etapa")
+    public ResponseEntity<String> addEtapa(@RequestParam("id") Long id, @RequestBody Etapa etapa){
+        try {
+            service.addEtapa(id, etapa);
+            return ResponseEntity.status(HttpStatus.OK).build();
+        }
+        catch(IllegalArgumentException e){
+            return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).build();
+        }
     }
     //------------------------------------------------------------------------------------
 

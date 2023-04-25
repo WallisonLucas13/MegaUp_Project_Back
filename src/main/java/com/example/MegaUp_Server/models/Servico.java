@@ -60,4 +60,7 @@ public class Servico {
     @OneToMany(cascade = CascadeType.ALL)
     private List<com.example.MegaUp_Server.models.Material> materiais;
 
+    @OneToMany(cascade = CascadeType.ALL)
+    private List<Etapa> etapas;
+
 }
