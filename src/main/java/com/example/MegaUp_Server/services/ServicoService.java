@@ -202,6 +202,10 @@ public class ServicoService {
         Servico servico = repository.findById(idServico)
                 .orElseThrow(() -> new ObjetoInexistenteException("Inexistente"));
 
+        if(servico.getEtapas() == null){
+            servico.setEtapas(List.of());
+        }
+
         int tetoGastos = Integer.parseInt(servico.getValorPagamentoFinal()) - calcEtapas(servico.getEtapas());
 
         if(Integer.parseInt(etapa.getValor()) <= tetoGastos){
