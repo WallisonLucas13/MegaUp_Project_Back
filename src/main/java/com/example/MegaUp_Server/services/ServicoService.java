@@ -218,6 +218,7 @@ public class ServicoService {
             update.add(etapa);
             servico.setEtapas(update);
             repository.save(servico);
+            return;
         }
 
         throw new IllegalArgumentException("Valor máximo ultrapassado!");
