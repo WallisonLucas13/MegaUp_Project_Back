@@ -141,6 +141,7 @@ public class ServicoService {
         valoresServico.setDesconto(servico.getDesconto());
         valoresServico.setEntrada(new Entrada(servico.getPorcentagemEntrada(), servico.getValorEntrada(), servico.getFormaPagamentoEntrada().name()));
         valoresServico.setPagamentoFinal(new PagamentoFinal(servico.getValorPagamentoFinal(), servico.getFormaPagamentoFinal().name()));
+        valoresServico.setEtapas(servico.getEtapas());
         return valoresServico;
     }
 
