@@ -208,8 +208,10 @@ public class ServicoService {
         }
 
         int tetoGastos = Integer.parseInt(servico.getValorPagamentoFinal()) - calcEtapas(servico.getEtapas());
+        System.out.println(tetoGastos);
 
         if(Integer.parseInt(etapa.getValor()) <= tetoGastos){
+            System.out.println(tetoGastos);
             List<Etapa> update = servico.getEtapas();
             update.add(etapa);
             servico.setEtapas(update);
