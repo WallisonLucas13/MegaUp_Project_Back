@@ -16,5 +16,8 @@ public class Etapa {
     private Long id;
 
     @Column
+    private Long iden;
+
+    @Column
     private String valor;
 }

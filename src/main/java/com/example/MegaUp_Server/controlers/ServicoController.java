@@ -9,6 +9,7 @@ import com.example.MegaUp_Server.dtos.ValoresServico;
 import com.example.MegaUp_Server.exceptions.ObjetoInexistenteException;
 import com.example.MegaUp_Server.models.Etapa;
 import com.example.MegaUp_Server.models.Servico;
+import com.example.MegaUp_Server.services.EtapaService;
 import com.example.MegaUp_Server.services.ServicoService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -26,6 +27,9 @@ public class ServicoController {
 
     @Autowired
     private ServicoService service;
+
+    @Autowired
+    private EtapaService etapaService;
 
     @PostMapping("/New")
     public ResponseEntity<String> save(@RequestBody @Valid ServicoDto dto, @RequestParam(name = "id") Long idCliente){
@@ -128,12 +132,24 @@ public class ServicoController {
     @PostMapping("/Etapa")
     public ResponseEntity<String> addEtapa(@RequestParam("id") Long id, @RequestBody Etapa etapa){
         try {
-            System.out.println("ENTROU");
             service.addEtapa(id, etapa);
             return ResponseEntity.status(HttpStatus.OK).build();
         }
         catch(IllegalArgumentException e){
             return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).build();
+        }
+    }
+    //------------------------------------------------------------------------------------
+
+    //REMOVE ETAPA - REGRA NEGOCIO
+    @DeleteMapping("/Etapa/Delete")
+    public ResponseEntity<String> removeEtapa(@RequestParam("id") Long id){
+        try {
+            etapaService.deleteEtapa(id);
+            return ResponseEntity.status(HttpStatus.OK).build();
+        }
+        catch(IllegalArgumentException e){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
     //------------------------------------------------------------------------------------
