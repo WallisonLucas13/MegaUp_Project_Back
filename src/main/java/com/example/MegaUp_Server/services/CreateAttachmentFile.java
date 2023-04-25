@@ -84,7 +84,7 @@ public class CreateAttachmentFile {
         fontEndQuestionsSubtitle.setStyle(Font.BOLD);
 
         Font fontEndQuestionsStyled = new Font();
-        fontEndQuestionsStyled.setColor(new BaseColor(255, 187, 51));
+        fontEndQuestionsStyled.setColor(BaseColor.WHITE);
         fontEndQuestionsStyled.setSize(15);
         fontEndQuestionsStyled.setFamily(FontFactory.TIMES_ITALIC);
 
