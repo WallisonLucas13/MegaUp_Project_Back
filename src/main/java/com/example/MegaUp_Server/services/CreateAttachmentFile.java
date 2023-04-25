@@ -53,7 +53,6 @@ public class CreateAttachmentFile {
         rectangle.setBorder(Rectangle.BOX);
         rectangle.setBorderWidth(3);
         rectangle.setBorderColor(BaseColor.BLACK);
-        rectangle.setBackgroundColor(new BaseColor(34, 35, 35));
 
         document.setPageSize(rectangle);
         document.open();
@@ -75,7 +74,7 @@ public class CreateAttachmentFile {
         fontTitle.setColor(new BaseColor(255, 187, 51));
 
         Font fontEndQuestions = new Font();
-        fontEndQuestions.setColor(new BaseColor(244, 244, 244, 1));
+        fontEndQuestions.setColor(BaseColor.BLACK);
         fontEndQuestions.setSize(12);
 
         Font fontEndQuestionsSubtitle = new Font();
@@ -84,7 +83,7 @@ public class CreateAttachmentFile {
         fontEndQuestionsSubtitle.setStyle(Font.BOLD);
 
         Font fontEndQuestionsStyled = new Font();
-        fontEndQuestionsStyled.setColor(BaseColor.WHITE);
+        fontEndQuestionsStyled.setColor(BaseColor.BLACK);
         fontEndQuestionsStyled.setSize(15);
         fontEndQuestionsStyled.setFamily(FontFactory.TIMES_ITALIC);
 
