@@ -302,7 +302,7 @@ public class CreateAttachmentFile {
 
         //Total a pagar
         Phrase value = new Phrase("R$ " + servico.getValorPagamentoFinal() + ",00", fontValues);
-        Phrase text = new Phrase("Total a pagar na conclusão do serviço: ", fontEndQuestionsSubtitle);
+        Phrase text = new Phrase("Total a pagar na conclusão do serviço: ", fontEndQuestionsStyled);
         text.add(value);
 
         Paragraph pagamentoFinal = new Paragraph(text);
@@ -344,7 +344,7 @@ public class CreateAttachmentFile {
         //------------------------------------------------------------------------------------------------
 
         //Footer
-        Paragraph footer = new Paragraph(new Phrase("By "+ empresa, FontFactory.getFont(FontFactory.TIMES_ITALIC, 11, new BaseColor(255, 187, 51))));
+        Paragraph footer = new Paragraph(new Phrase("By "+ empresa, FontFactory.getFont(FontFactory.COURIER_BOLD, 11, BaseColor.BLACK)));
         footer.setAlignment(Element.ALIGN_CENTER);
         footer.setSpacingBefore(25f);
         document.add(footer);
