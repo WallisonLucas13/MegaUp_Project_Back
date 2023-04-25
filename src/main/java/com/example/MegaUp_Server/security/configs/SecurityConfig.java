@@ -70,6 +70,8 @@ public class SecurityConfig {
                 .hasRole("USER")
                 .requestMatchers(HttpMethod.DELETE, "/Material/Delete")
                 .hasRole("USER")
+                .requestMatchers(HttpMethod.DELETE, "/Etapa/Delete")
+                .hasRole("USER")
                 .anyRequest()
                 .authenticated()
                 .and()
