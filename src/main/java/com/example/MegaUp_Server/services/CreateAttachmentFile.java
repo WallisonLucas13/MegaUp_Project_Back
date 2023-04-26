@@ -293,33 +293,27 @@ public class CreateAttachmentFile {
         document.add(sub);
         //----------------------------------------------------------------------------------------------
 
-        //ETAPAS HEADER
-        Phrase headerEtapas = new Phrase("Etapas", fontEndQuestionsStyled);
+        //ETAPAS
+        Phrase headerEtapas = new Phrase("Etapas: ", fontEndQuestionsStyled);
+
+        List<Etapa> etapas = servico.getEtapas();
+        etapas.sort(Comparator.comparingLong(Etapa::getIden));
+        Phrase body = new Phrase();
+
+        etapas.stream().forEach((etapa) -> {
+
+            Phrase bodyEtapa = new Phrase(etapa.getIden() + "° Etapa -> R$ " + etapa.getValor() + ",00 - ");
+            body.add(bodyEtapa);
+        });
+
+        headerEtapas.add(body);
 
         Paragraph etapasP = new Paragraph(headerEtapas);
         etapasP.setSpacingBefore(10f);
         etapasP.setSpacingAfter(10f);
         etapasP.setAlignment(Element.ALIGN_LEFT);
         document.add(etapasP);
-        //----------------------------------------------------------------------------------------------
-
-        //ETAPAS
-        List<Etapa> etapas = servico.getEtapas();
-        etapas.sort(Comparator.comparingLong(Etapa::getIden));
-        etapas.stream().forEach((etapa) -> {
-
-            Phrase bodyEtapa = new Phrase(etapa.getIden() + "° Etapa -> R$ " + etapa.getValor() + ",00");
-
-            Paragraph e = new Paragraph(bodyEtapa);
-            e.setSpacingAfter(5f);
-            e.setAlignment(Element.ALIGN_LEFT);
-            try {
-                document.add(e);
-            } catch (DocumentException a) {
-                throw new RuntimeException(a);
-            }
-
-        });
+        
         //-----------------------------------------------------------------------------------------------
 
         document.add(divider());
