@@ -248,17 +248,34 @@ public class CreateAttachmentFile {
         }
         //----------------------------------------------------------------------------------------------
 
-        //MAO DE OBRA
-        if(!ocultarMaoDeObra) {
-            Phrase headerObra = new Phrase("Mão de Obra: ", fontEndQuestionsStyled);
-            Phrase bodyObra = new Phrase("R$ " + servico.getMaoDeObra() + ",00", fontValues);
-            headerObra.add(bodyObra);
+        //Valores
 
-            Paragraph obra = new Paragraph(headerObra);
-            obra.setSpacingBefore(10f);
-            obra.setAlignment(Element.ALIGN_LEFT);
-            document.add(obra);
-        }
+            Phrase valores = new Phrase();
+
+            if(!ocultarMaoDeObra) {
+
+                Phrase headerObra = new Phrase("Mão de Obra: ", fontEndQuestionsStyled);
+                Phrase bodyObra = new Phrase("R$ " + servico.getMaoDeObra() + ",00 \t", fontValues);
+                headerObra.add(bodyObra);
+                valores.add(headerObra);
+            }
+
+            if(!ocultarDesconto) {
+                Phrase headerDesconto = new Phrase("Desconto: ", fontEndQuestionsStyled);
+                Phrase bodyDesconto = new Phrase(servico.getDesconto() + "% | " + "R$ " + (Integer.parseInt(servico.getValorPagamentoFinal()) * servico.getDesconto()) / 100 + ",00 \t", fontImportant);
+                headerDesconto.add(bodyDesconto);
+                valores.add(headerDesconto);
+            }
+
+            Phrase headerEntrada = new Phrase("Entrada: ", fontEndQuestionsStyled);
+            Phrase bodyEntrada = new Phrase(servico.getPorcentagemEntrada() + "% | " + "R$ " + servico.getValorEntrada() + ",00", fontValues);
+            headerEntrada.add(bodyEntrada);
+            valores.add(headerEntrada);
+
+            Paragraph values = new Paragraph(valores);
+            values.setSpacingBefore(15f);
+            values.setAlignment(Element.ALIGN_LEFT);
+            document.add(values);
         //----------------------------------------------------------------------------------------------
 
         document.add(divider());
@@ -303,31 +320,6 @@ public class CreateAttachmentFile {
 
         });
         //-----------------------------------------------------------------------------------------------
-
-
-        //Desconto
-        if(!ocultarDesconto) {
-            Phrase headerDesconto = new Phrase("Desconto: ", fontEndQuestionsStyled);
-            Phrase bodyDesconto = new Phrase(servico.getDesconto() + "% | " + "R$ " + (Integer.parseInt(servico.getValorPagamentoFinal()) * servico.getDesconto()) / 100 + ",00", fontImportant);
-            headerDesconto.add(bodyDesconto);
-
-            Paragraph desconto = new Paragraph(headerDesconto);
-            desconto.setSpacingBefore(10f);
-            desconto.setAlignment(Element.ALIGN_LEFT);
-            document.add(desconto);
-        }
-        //----------------------------------------------------------------------------------------------
-
-        //ENTRADA
-        Phrase headerEntrada = new Phrase("Entrada: ", fontEndQuestionsStyled);
-        Phrase bodyEntrada = new Phrase(servico.getPorcentagemEntrada() + "% | " + "R$ " + servico.getValorEntrada() + ",00", fontValues);
-        headerEntrada.add(bodyEntrada);
-
-        Paragraph entrada = new Paragraph(headerEntrada);
-        entrada.setSpacingBefore(10f);
-        entrada.setAlignment(Element.ALIGN_LEFT);
-        document.add(entrada);
-        //----------------------------------------------------------------------------------------------
 
         document.add(divider());
 
