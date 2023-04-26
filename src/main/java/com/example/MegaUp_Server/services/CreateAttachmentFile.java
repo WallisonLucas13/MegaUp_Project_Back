@@ -1,6 +1,7 @@
 package com.example.MegaUp_Server.services;
 
 import com.example.MegaUp_Server.dtos.OrcamentoAdressTo;
+import com.example.MegaUp_Server.models.Etapa;
 import com.example.MegaUp_Server.models.Material;
 import com.example.MegaUp_Server.models.Servico;
 import com.itextpdf.text.*;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
@@ -302,16 +304,18 @@ public class CreateAttachmentFile {
         Phrase headerEtapas = new Phrase("Etapas", fontEndQuestionsStyled);
 
         Paragraph etapasP = new Paragraph(headerEtapas);
-        etapasP.setSpacingBefore(-18f);
+        etapasP.setSpacingBefore(-25f);
         etapasP.setSpacingAfter(10f);
         etapasP.setAlignment(Element.ALIGN_RIGHT);
         document.add(etapasP);
         //----------------------------------------------------------------------------------------------
 
         //ETAPAS
-        servico.getEtapas().stream().forEach((etapa) -> {
+        List<Etapa> etapas = servico.getEtapas();
+        etapas.sort(Comparator.comparingLong(Etapa::getIden));
+        etapas.stream().forEach((etapa) -> {
 
-            Phrase bodyEtapa = new Phrase(String.valueOf(etapa.getIden()) + "° Etapa -> R$ " + etapa.getValor() + ",00");
+            Phrase bodyEtapa = new Phrase(etapa.getIden() + "° Etapa -> R$ " + etapa.getValor() + ",00");
 
             Paragraph e = new Paragraph(bodyEtapa);
             e.setSpacingAfter(5f);
