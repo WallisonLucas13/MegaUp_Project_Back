@@ -268,7 +268,7 @@ public class CreateAttachmentFile {
                 headerDesconto.add(bodyDesconto);
                 Paragraph pDesconto = new Paragraph(headerDesconto);
                 pDesconto.setAlignment(Element.ALIGN_RIGHT);
-
+                pDesconto.setSpacingBefore(-15);
                 valores.add(pDesconto);
             }
 
@@ -280,7 +280,6 @@ public class CreateAttachmentFile {
             headerEntrada.add(bodyEntrada);
 
             Paragraph p = new Paragraph(headerEntrada);
-            p.setSpacingBefore(10f);
             p.setAlignment(Element.ALIGN_LEFT);
             document.add(p);
 
