@@ -243,6 +243,7 @@ public class CreateAttachmentFile {
 
                 Paragraph totalM = new Paragraph(headerTotalM);
                 totalM.setAlignment(Element.ALIGN_RIGHT);
+                totalM.setSpacingAfter(10f);
                 document.add(totalM);
             }
         }
@@ -255,14 +256,14 @@ public class CreateAttachmentFile {
             if(!ocultarMaoDeObra) {
 
                 Phrase headerObra = new Phrase("Mão de Obra: ", fontEndQuestionsStyled);
-                Phrase bodyObra = new Phrase("R$ " + servico.getMaoDeObra() + ",00 \t", fontValues);
+                Phrase bodyObra = new Phrase("R$ " + servico.getMaoDeObra() + ",00 |-| ", fontValues);
                 headerObra.add(bodyObra);
                 valores.add(headerObra);
             }
 
             if(!ocultarDesconto) {
                 Phrase headerDesconto = new Phrase("Desconto: ", fontEndQuestionsStyled);
-                Phrase bodyDesconto = new Phrase(servico.getDesconto() + "% | " + "R$ " + (Integer.parseInt(servico.getValorPagamentoFinal()) * servico.getDesconto()) / 100 + ",00 \t", fontImportant);
+                Phrase bodyDesconto = new Phrase(servico.getDesconto() + "% | " + "R$ " + (Integer.parseInt(servico.getValorPagamentoFinal()) * servico.getDesconto()) / 100 + ",00 |-| ", fontImportant);
                 headerDesconto.add(bodyDesconto);
                 valores.add(headerDesconto);
             }
@@ -296,9 +297,9 @@ public class CreateAttachmentFile {
         Phrase headerEtapas = new Phrase("Etapas", fontEndQuestionsStyled);
 
         Paragraph etapasP = new Paragraph(headerEtapas);
-        etapasP.setSpacingBefore(-25f);
+        etapasP.setSpacingBefore(10f);
         etapasP.setSpacingAfter(10f);
-        etapasP.setAlignment(Element.ALIGN_RIGHT);
+        etapasP.setAlignment(Element.ALIGN_LEFT);
         document.add(etapasP);
         //----------------------------------------------------------------------------------------------
 
@@ -311,7 +312,7 @@ public class CreateAttachmentFile {
 
             Paragraph e = new Paragraph(bodyEtapa);
             e.setSpacingAfter(5f);
-            e.setAlignment(Element.ALIGN_RIGHT);
+            e.setAlignment(Element.ALIGN_LEFT);
             try {
                 document.add(e);
             } catch (DocumentException a) {
