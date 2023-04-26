@@ -251,38 +251,37 @@ public class CreateAttachmentFile {
 
         //Valores
 
-            Phrase valores = new Phrase();
+           Paragraph valores = new Paragraph();
 
             if(!ocultarMaoDeObra) {
 
                 Phrase headerObra = new Phrase("Mão de Obra: ", fontEndQuestionsStyled);
-                Phrase bodyObra = new Phrase("R$ " + servico.getMaoDeObra() + ",00 |-| ", fontValues);
+                Phrase bodyObra = new Phrase("R$ " + servico.getMaoDeObra() + ",00", fontValues);
                 headerObra.add(bodyObra);
+
                 valores.add(headerObra);
             }
 
             if(!ocultarDesconto) {
                 Phrase headerDesconto = new Phrase("Desconto: ", fontEndQuestionsStyled);
-                Phrase bodyDesconto = new Phrase(servico.getDesconto() + "% | " + "R$ " + (Integer.parseInt(servico.getValorPagamentoFinal()) * servico.getDesconto()) / 100 + ",00 |-| ", fontImportant);
+                Phrase bodyDesconto = new Phrase(servico.getDesconto() + "% | " + "R$ " + (Integer.parseInt(servico.getValorPagamentoFinal()) * servico.getDesconto()) / 100 + ",00", fontImportant);
                 headerDesconto.add(bodyDesconto);
                 Paragraph pDesconto = new Paragraph(headerDesconto);
                 pDesconto.setAlignment(Element.ALIGN_RIGHT);
 
                 valores.add(pDesconto);
             }
-
-            Paragraph values = new Paragraph(valores);
-            values.setSpacingBefore(15f);
-            values.setAlignment(Element.ALIGN_LEFT);
-            document.add(values);
+            
+            valores.setSpacingBefore(15f);
+            document.add(valores);
 
             Phrase headerEntrada = new Phrase("Entrada: ", fontEndQuestionsStyled);
             Phrase bodyEntrada = new Phrase(servico.getPorcentagemEntrada() + "% | " + "R$ " + servico.getValorEntrada() + ",00", fontValues);
             headerEntrada.add(bodyEntrada);
 
             Paragraph p = new Paragraph(headerEntrada);
-            values.setSpacingBefore(10f);
-            values.setAlignment(Element.ALIGN_LEFT);
+            p.setSpacingBefore(10f);
+            p.setAlignment(Element.ALIGN_LEFT);
             document.add(p);
 
         //----------------------------------------------------------------------------------------------
