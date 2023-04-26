@@ -271,7 +271,6 @@ public class CreateAttachmentFile {
 
         Paragraph sub = new Paragraph(headerSub);
         sub.setSpacingBefore(10f);
-        sub.setSpacingAfter(5f);
         sub.setAlignment(Element.ALIGN_CENTER);
         document.add(sub);
         //----------------------------------------------------------------------------------------------
