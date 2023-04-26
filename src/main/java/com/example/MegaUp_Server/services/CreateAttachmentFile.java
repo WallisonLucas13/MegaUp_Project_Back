@@ -265,18 +265,26 @@ public class CreateAttachmentFile {
                 Phrase headerDesconto = new Phrase("Desconto: ", fontEndQuestionsStyled);
                 Phrase bodyDesconto = new Phrase(servico.getDesconto() + "% | " + "R$ " + (Integer.parseInt(servico.getValorPagamentoFinal()) * servico.getDesconto()) / 100 + ",00 |-| ", fontImportant);
                 headerDesconto.add(bodyDesconto);
-                valores.add(headerDesconto);
-            }
+                Paragraph pDesconto = new Paragraph(headerDesconto);
+                pDesconto.setAlignment(Element.ALIGN_RIGHT);
 
-            Phrase headerEntrada = new Phrase("Entrada: ", fontEndQuestionsStyled);
-            Phrase bodyEntrada = new Phrase(servico.getPorcentagemEntrada() + "% | " + "R$ " + servico.getValorEntrada() + ",00", fontValues);
-            headerEntrada.add(bodyEntrada);
-            valores.add(headerEntrada);
+                valores.add(pDesconto);
+            }
 
             Paragraph values = new Paragraph(valores);
             values.setSpacingBefore(15f);
             values.setAlignment(Element.ALIGN_LEFT);
             document.add(values);
+
+            Phrase headerEntrada = new Phrase("Entrada: ", fontEndQuestionsStyled);
+            Phrase bodyEntrada = new Phrase(servico.getPorcentagemEntrada() + "% | " + "R$ " + servico.getValorEntrada() + ",00", fontValues);
+            headerEntrada.add(bodyEntrada);
+
+            Paragraph p = new Paragraph(headerEntrada);
+            values.setSpacingBefore(10f);
+            values.setAlignment(Element.ALIGN_LEFT);
+            document.add(p);
+
         //----------------------------------------------------------------------------------------------
 
         document.add(divider());
@@ -302,7 +310,10 @@ public class CreateAttachmentFile {
 
         etapas.stream().forEach((etapa) -> {
 
-            Phrase bodyEtapa = new Phrase(etapa.getIden() + "° Etapa -> R$ " + etapa.getValor() + ",00 - ");
+            Phrase bodyEtapa = new Phrase(etapa.getIden() + "° Etapa -> ", fontEndQuestionsSubtitle);
+            Phrase bodyValor = new Phrase("R$ " + etapa.getValor() + ",00 | ", fontValues);
+            bodyEtapa.add(bodyValor);
+
             body.add(bodyEtapa);
         });
 
@@ -313,7 +324,7 @@ public class CreateAttachmentFile {
         etapasP.setSpacingAfter(10f);
         etapasP.setAlignment(Element.ALIGN_LEFT);
         document.add(etapasP);
-        
+
         //-----------------------------------------------------------------------------------------------
 
         document.add(divider());
