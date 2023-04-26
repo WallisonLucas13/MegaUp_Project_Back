@@ -298,6 +298,33 @@ public class CreateAttachmentFile {
         document.add(entrada);
         //----------------------------------------------------------------------------------------------
 
+        //ETAPAS HEADER
+        Phrase headerEtapas = new Phrase("Etapas", fontEndQuestionsStyled);
+
+        Paragraph etapasP = new Paragraph(headerEtapas);
+        etapasP.setSpacingBefore(-18f);
+        etapasP.setSpacingAfter(10f);
+        etapasP.setAlignment(Element.ALIGN_RIGHT);
+        document.add(etapasP);
+        //----------------------------------------------------------------------------------------------
+
+        //ETAPAS
+        servico.getEtapas().stream().forEach((etapa) -> {
+
+            Phrase bodyEtapa = new Phrase(String.valueOf(etapa.getIden()) + "° Etapa -> R$ " + etapa.getValor() + ",00");
+
+            Paragraph e = new Paragraph(bodyEtapa);
+            e.setSpacingAfter(5f);
+            e.setAlignment(Element.ALIGN_RIGHT);
+            try {
+                document.add(e);
+            } catch (DocumentException a) {
+                throw new RuntimeException(a);
+            }
+
+        });
+        //-----------------------------------------------------------------------------------------------
+
         document.add(divider());
 
         //Total a pagar
