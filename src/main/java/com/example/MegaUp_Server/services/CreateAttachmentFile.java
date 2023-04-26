@@ -271,7 +271,7 @@ public class CreateAttachmentFile {
 
                 valores.add(pDesconto);
             }
-            
+
             valores.setSpacingBefore(15f);
             document.add(valores);
 
@@ -330,7 +330,7 @@ public class CreateAttachmentFile {
 
         //Total a pagar
         Phrase value = new Phrase("R$ " + servico.getValorPagamentoFinal() + ",00", fontValues);
-        Phrase text = new Phrase("Total a pagar na conclusão do serviço: ", fontEndQuestionsStyled);
+        Phrase text = new Phrase("Total: ", fontEndQuestionsStyled);
         text.add(value);
 
         Paragraph pagamentoFinal = new Paragraph(text);
