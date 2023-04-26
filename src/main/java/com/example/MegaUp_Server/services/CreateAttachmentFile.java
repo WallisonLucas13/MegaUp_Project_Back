@@ -403,6 +403,8 @@ public class CreateAttachmentFile {
     private Paragraph divider(){
         Phrase p = new Phrase("__________________________________________________________________", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 14, new BaseColor(123, 123, 123, 1)));
         Paragraph a = new Paragraph(p);
+        a.setSpacingBefore(-10);
+        a.setSpacingAfter(-10);
         a.setAlignment(Element.ALIGN_CENTER);
         return new Paragraph(p);
     }
