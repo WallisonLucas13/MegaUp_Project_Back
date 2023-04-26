@@ -276,30 +276,6 @@ public class CreateAttachmentFile {
         document.add(sub);
         //----------------------------------------------------------------------------------------------
 
-        //Desconto
-        if(!ocultarDesconto) {
-            Phrase headerDesconto = new Phrase("Desconto: ", fontEndQuestionsStyled);
-            Phrase bodyDesconto = new Phrase(servico.getDesconto() + "% | " + "R$ " + (Integer.parseInt(servico.getValorPagamentoFinal()) * servico.getDesconto()) / 100 + ",00", fontImportant);
-            headerDesconto.add(bodyDesconto);
-
-            Paragraph desconto = new Paragraph(headerDesconto);
-            desconto.setSpacingBefore(10f);
-            desconto.setAlignment(Element.ALIGN_LEFT);
-            document.add(desconto);
-        }
-        //----------------------------------------------------------------------------------------------
-
-        //ENTRADA
-        Phrase headerEntrada = new Phrase("Entrada: ", fontEndQuestionsStyled);
-        Phrase bodyEntrada = new Phrase(servico.getPorcentagemEntrada() + "% | " + "R$ " + servico.getValorEntrada() + ",00", fontValues);
-        headerEntrada.add(bodyEntrada);
-
-        Paragraph entrada = new Paragraph(headerEntrada);
-        entrada.setSpacingBefore(10f);
-        entrada.setAlignment(Element.ALIGN_LEFT);
-        document.add(entrada);
-        //----------------------------------------------------------------------------------------------
-
         //ETAPAS HEADER
         Phrase headerEtapas = new Phrase("Etapas", fontEndQuestionsStyled);
 
@@ -328,6 +304,31 @@ public class CreateAttachmentFile {
 
         });
         //-----------------------------------------------------------------------------------------------
+
+
+        //Desconto
+        if(!ocultarDesconto) {
+            Phrase headerDesconto = new Phrase("Desconto: ", fontEndQuestionsStyled);
+            Phrase bodyDesconto = new Phrase(servico.getDesconto() + "% | " + "R$ " + (Integer.parseInt(servico.getValorPagamentoFinal()) * servico.getDesconto()) / 100 + ",00", fontImportant);
+            headerDesconto.add(bodyDesconto);
+
+            Paragraph desconto = new Paragraph(headerDesconto);
+            desconto.setSpacingBefore(10f);
+            desconto.setAlignment(Element.ALIGN_LEFT);
+            document.add(desconto);
+        }
+        //----------------------------------------------------------------------------------------------
+
+        //ENTRADA
+        Phrase headerEntrada = new Phrase("Entrada: ", fontEndQuestionsStyled);
+        Phrase bodyEntrada = new Phrase(servico.getPorcentagemEntrada() + "% | " + "R$ " + servico.getValorEntrada() + ",00", fontValues);
+        headerEntrada.add(bodyEntrada);
+
+        Paragraph entrada = new Paragraph(headerEntrada);
+        entrada.setSpacingBefore(10f);
+        entrada.setAlignment(Element.ALIGN_LEFT);
+        document.add(entrada);
+        //----------------------------------------------------------------------------------------------
 
         document.add(divider());
 
