@@ -1,9 +1,12 @@
 package com.example.MegaUp_Server.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.math.BigDecimal;
 
 @Entity
 @NoArgsConstructor
@@ -11,7 +14,7 @@ import lombok.Setter;
 @Getter
 public class Material {
 
-    public Material(String nome, int quant, int valor){
+    public Material(String nome, int quant, BigDecimal valor){
         this.nome = nome;
         this.quant = quant;
         this.valor = valor;
@@ -21,15 +24,17 @@ public class Material {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column
+    @Column(nullable = false)
     private String nome;
 
-    @Column
+    @Column(nullable = false)
     private int quant;
 
-    @Column
-    private int valor;
+    @Column(precision = 19, scale = 2, nullable = false)
+    private BigDecimal valor;
 
-    @ManyToOne
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "servico_id")
     private com.example.MegaUp_Server.models.Servico servico;
 }

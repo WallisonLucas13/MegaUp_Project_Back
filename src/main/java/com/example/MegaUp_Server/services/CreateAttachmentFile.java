@@ -6,20 +6,36 @@ import com.example.MegaUp_Server.models.Material;
 import com.example.MegaUp_Server.models.Servico;
 import com.itextpdf.text.*;
 import com.itextpdf.text.pdf.PdfWriter;
-import org.springframework.core.io.DefaultResourceLoader;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.nio.file.Paths;
+import java.nio.file.Path;
+import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
+import java.util.UUID;
 
 @Service
 public class CreateAttachmentFile {
+
+    private static final BigDecimal ONE_HUNDRED = new BigDecimal("100");
+    private static final int MONEY_SCALE = 2;
+    private static final RoundingMode MONEY_ROUNDING = RoundingMode.HALF_UP;
+
+    @Value("${FILES_STORAGE_PATH}")
+    private String filesStoragePath;
+
+    @Value("${LOCATION}")
+    private String location;
 
     public String create(Servico servico,
                          OrcamentoAdressTo orcamentoAdressTo,
@@ -30,21 +46,22 @@ public class CreateAttachmentFile {
                          String telefone) throws DocumentException, IOException {
 
         //REGRAS DE NEGOCIO
-        List<Material> materiais = servico.getMateriais();
+        List<Material> materiais = servico.getMateriais() == null
+            ? new ArrayList<>()
+            : servico.getMateriais();
 
-        boolean ocultarMateriais = orcamentoAdressTo.isOcultarMateriais();
-        boolean ocultarMaoDeObra = orcamentoAdressTo.isOcultarMaoDeObra();
-        boolean ocultarDesconto = orcamentoAdressTo.isOcultarDesconto();
+        boolean ocultarMateriais = orcamentoAdressTo.ocultarMateriais();
+        boolean ocultarMaoDeObra = orcamentoAdressTo.ocultarMaoDeObra();
+        boolean ocultarDesconto = orcamentoAdressTo.ocultarDesconto();
         //---------------------------------------------------------------------
 
         //INSTANCIA DO DOCUMENTO
         Document document = new Document();
 
-        String documentName = "Orcamento.pdf";
+        String documentName = "Orcamento_" + UUID.randomUUID() + ".pdf";
 
-        ResourceLoader resourceLoader = new DefaultResourceLoader();
-        Resource resource = resourceLoader.getResource("file:files\\" + documentName);
-        PdfWriter.getInstance(document, new FileOutputStream(resource.getFile()));
+        Path filePath = Paths.get(filesStoragePath, documentName);
+        PdfWriter.getInstance(document, new FileOutputStream(filePath.toFile()));
 
         Rectangle rectangle = new Rectangle(PageSize.A4);
 
@@ -160,7 +177,7 @@ public class CreateAttachmentFile {
 
         //LOCAL
         Phrase headerLocal = new Phrase("Localização: ", fontEndQuestionsSubtitle);
-        Phrase bodyLocal = new Phrase("Uberlândia - MG", fontEndQuestions);
+        Phrase bodyLocal = new Phrase(location, fontEndQuestions);
         headerLocal.add(bodyLocal);
 
         Paragraph local = new Paragraph(headerLocal);
@@ -238,7 +255,7 @@ public class CreateAttachmentFile {
             //MATERIAL TOTAL
             if (!materiais.isEmpty()) {
                 Phrase headerTotalM = new Phrase("Total: ", fontEndQuestionsSubtitle);
-                Phrase bodyTotalM = new Phrase("R$ " + servico.getValorTotalMateriais() + ",00", fontValues);
+                Phrase bodyTotalM = new Phrase(formatMoney(servico.getValorTotalMateriais()), fontValues);
                 headerTotalM.add(bodyTotalM);
 
                 Paragraph totalM = new Paragraph(headerTotalM);
@@ -256,15 +273,18 @@ public class CreateAttachmentFile {
             if(!ocultarMaoDeObra) {
 
                 Phrase headerObra = new Phrase("Mão de Obra: ", fontEndQuestionsStyled);
-                Phrase bodyObra = new Phrase("R$ " + servico.getMaoDeObra() + ",00", fontValues);
+                Phrase bodyObra = new Phrase(formatMoney(servico.getMaoDeObra()), fontValues);
                 headerObra.add(bodyObra);
 
                 valores.add(headerObra);
             }
 
             if(!ocultarDesconto) {
+                BigDecimal subtotal = normalize(servico.getMaoDeObra()).add(normalize(servico.getValorTotalMateriais()));
+                BigDecimal descontoRate = BigDecimal.valueOf(servico.getDesconto()).divide(ONE_HUNDRED, 4, MONEY_ROUNDING);
+                BigDecimal descontoValor = subtotal.multiply(descontoRate).setScale(MONEY_SCALE, MONEY_ROUNDING);
                 Phrase headerDesconto = new Phrase("Desconto: ", fontEndQuestionsStyled);
-                Phrase bodyDesconto = new Phrase(servico.getDesconto() + "% | " + "R$ " + (Integer.parseInt(servico.getValorPagamentoFinal()) * servico.getDesconto()) / 100 + ",00", fontImportant);
+                Phrase bodyDesconto = new Phrase(servico.getDesconto() + "% | " + formatMoney(descontoValor), fontImportant);
                 headerDesconto.add(bodyDesconto);
                 Paragraph pDesconto = new Paragraph(headerDesconto);
                 pDesconto.setAlignment(Element.ALIGN_RIGHT);
@@ -276,7 +296,7 @@ public class CreateAttachmentFile {
             document.add(valores);
 
             Phrase headerEntrada = new Phrase("Entrada: ", fontEndQuestionsStyled);
-            Phrase bodyEntrada = new Phrase(servico.getPorcentagemEntrada() + "% | " + "R$ " + servico.getValorEntrada() + ",00", fontValues);
+            Phrase bodyEntrada = new Phrase(servico.getPorcentagemEntrada() + "% | " + formatMoney(servico.getValorEntrada()), fontValues);
             headerEntrada.add(bodyEntrada);
 
             Paragraph p = new Paragraph(headerEntrada);
@@ -289,8 +309,8 @@ public class CreateAttachmentFile {
 
         //SubTotal
         Phrase headerSub = new Phrase("SubTotal: ", fontEndQuestionsStyled);
-        int t = servico.getMaoDeObra() + servico.getValorTotalMateriais();
-        Phrase bodySub = new Phrase("R$ " + t + ",00\n_____________________", fontValues);
+        BigDecimal t = normalize(servico.getMaoDeObra()).add(normalize(servico.getValorTotalMateriais()));
+        Phrase bodySub = new Phrase(formatMoney(t) + "\n_____________________", fontValues);
         headerSub.add(bodySub);
 
         Paragraph sub = new Paragraph(headerSub);
@@ -302,14 +322,14 @@ public class CreateAttachmentFile {
         //ETAPAS
         Phrase headerEtapas = new Phrase("Etapas: ", fontEndQuestionsStyled);
 
-        List<Etapa> etapas = servico.getEtapas();
+        List<Etapa> etapas = servico.getEtapas() == null ? new ArrayList<>() : servico.getEtapas();
         etapas.sort(Comparator.comparingLong(Etapa::getIden));
         Phrase body = new Phrase();
 
         etapas.stream().forEach((etapa) -> {
 
             Phrase bodyEtapa = new Phrase(etapa.getIden() + "° Etapa -> ", fontEndQuestionsSubtitle);
-            Phrase bodyValor = new Phrase("R$ " + etapa.getValor() + ",00 | ", fontValues);
+            Phrase bodyValor = new Phrase(formatMoney(etapa.getValor()) + " | ", fontValues);
             bodyEtapa.add(bodyValor);
 
             body.add(bodyEtapa);
@@ -328,7 +348,7 @@ public class CreateAttachmentFile {
         document.add(divider());
 
         //Total a pagar
-        Phrase value = new Phrase("R$ " + servico.getValorPagamentoFinal() + ",00", fontValues);
+        Phrase value = new Phrase(formatMoney(servico.getValorPagamentoFinal()), fontValues);
         Phrase text = new Phrase("Total: ", fontEndQuestionsStyled);
         text.add(value);
 
@@ -386,16 +406,29 @@ public class CreateAttachmentFile {
     private Phrase formatarMaterial(Material material, Font valuesFont, Font importantFont, Font fontPadrao){
 
         Phrase quant = new Phrase(String.valueOf(material.getQuant()), importantFont);
-        Phrase unitario = new Phrase("R$ " + material.getValor() + ",00 | ", valuesFont);
+        Phrase unitario = new Phrase(formatMoney(material.getValor()) + " | ", valuesFont);
         unitario.add(quant);
 
-        int mult = material.getValor()* material.getQuant();
-        Phrase res = new Phrase(" = R$ " + mult + ",00", valuesFont);
+        BigDecimal mult = normalize(material.getValor()).multiply(BigDecimal.valueOf(material.getQuant()));
+        Phrase res = new Phrase(" = " + formatMoney(mult), valuesFont);
 
         Phrase start = new Phrase(material.getNome() + " | ", fontPadrao);
         start.add(unitario);
         start.add(res);
         return start;
+    }
+    //------------------------------------------------------------------------------------------------------
+
+    private BigDecimal normalize(BigDecimal value){
+        if(value == null){
+            return BigDecimal.ZERO.setScale(MONEY_SCALE, MONEY_ROUNDING);
+        }
+        return value.setScale(MONEY_SCALE, MONEY_ROUNDING);
+    }
+
+    private String formatMoney(BigDecimal value){
+        NumberFormat format = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
+        return format.format(normalize(value));
     }
     //------------------------------------------------------------------------------------------------------
 

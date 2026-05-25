@@ -1,6 +1,7 @@
 package com.example.MegaUp_Server.dtos;
 
 import com.example.MegaUp_Server.models.Servico;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -8,6 +9,7 @@ import lombok.Setter;
 @Setter
 public class ServicoDto {
 
+    @NotBlank
     private String nome;
     private String desc;
 

@@ -1,10 +1,6 @@
 package com.example.MegaUp_Server.dtos;
 
-import lombok.Getter;
-import lombok.Setter;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 
-@Getter
-@Setter
-public class DescontoDto {
-    private int porcentagem;
-}
+public record DescontoDto(@Min(0) @Max(100) int porcentagem) {}

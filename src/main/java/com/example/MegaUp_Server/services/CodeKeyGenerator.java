@@ -1,30 +1,25 @@
 package com.example.MegaUp_Server.services;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Random;
+import org.springframework.stereotype.Component;
 
+import java.security.SecureRandom;
+
+@Component
 public class CodeKeyGenerator {
 
-    public String gerarKey(){
+    // SecureRandom é criptograficamente seguro (CSPRNG), ao contrário de Random
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
-        Random random = new Random();
+    // Charset sem caracteres especiais (ç/Ç causam problemas de encoding em email)
+    private static final String CHARSET =
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
-        //Simples Key 64 Digitos
+    public String gerarKey() {
         int size = 64;
-
-        String lowerLetters = "q,w,,e,r,t,y,u,i,o,p,,a,,s,d,f,g,h,j,k,l,ç,z,x,c,v,b,n,m";
-        String upperLetters = ",Q,W,E,R,T,Y,U,I,O,P,A,S,D,F,G,H,J,K,L,Ç,Z,X,C,V,B,N,M";
-        String numbers = ",1,2,3,4,5,6,7,8,9,0";
-        String keyLine = lowerLetters + upperLetters + numbers;
-
-        List<String> list = Arrays.asList(keyLine.split(","));
-        String keyFinish = "";
-
-        for(int i=0; i<size; i++){
-            keyFinish += list.get(random.nextInt(list.size()-1));
+        StringBuilder key = new StringBuilder(size);
+        for (int i = 0; i < size; i++) {
+            key.append(CHARSET.charAt(SECURE_RANDOM.nextInt(CHARSET.length())));
         }
-
-        return keyFinish;
+        return key.toString();
     }
 }

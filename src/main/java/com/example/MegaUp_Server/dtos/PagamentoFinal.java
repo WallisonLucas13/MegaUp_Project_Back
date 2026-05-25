@@ -1,20 +1,7 @@
 package com.example.MegaUp_Server.dtos;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.validation.constraints.NotBlank;
 
-@Getter
-@Setter
-@NoArgsConstructor
-public class PagamentoFinal {
+import java.math.BigDecimal;
 
-    public PagamentoFinal(String valor,String formaPagamento) {
-        this.valor = valor;
-        this.formaPagamento = formaPagamento;
-    }
-
-    private String valor;
-
-    private String formaPagamento;
-}
+public record PagamentoFinal(BigDecimal valor, @NotBlank String formaPagamento) {}

@@ -1,26 +1,26 @@
 package com.example.MegaUp_Server.dtos;
 
-import com.example.MegaUp_Server.models.Etapa;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Setter
 @Getter
 public class ValoresServico {
 
-    private int valor;
+    private BigDecimal valor;
 
-    private int valorTotalMateriais;
+    private BigDecimal valorTotalMateriais;
 
-    private int valorFinal;
+    private BigDecimal valorFinal;
 
-    private int desconto;
+    private Integer desconto;
 
     private com.example.MegaUp_Server.dtos.Entrada entrada;
 
     private com.example.MegaUp_Server.dtos.PagamentoFinal pagamentoFinal;
 
-    private List<Etapa> etapas;
+    private List<EtapaResponseDto> etapas;
 }

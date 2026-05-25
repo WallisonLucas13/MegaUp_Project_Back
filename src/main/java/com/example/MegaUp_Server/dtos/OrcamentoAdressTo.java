@@ -1,19 +1,12 @@
 package com.example.MegaUp_Server.dtos;
 
-import lombok.Getter;
-import lombok.Setter;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
-@Setter
-@Getter
-public class OrcamentoAdressTo{
-
-    private String adress;
-
-    private Long idCliente;
-
-    private boolean ocultarMateriais;
-
-    private boolean ocultarMaoDeObra;
-
-    private boolean ocultarDesconto;
-}
+public record OrcamentoAdressTo(
+        @NotBlank @Email String adress,
+        @NotNull Long idCliente,
+        boolean ocultarMateriais,
+        boolean ocultarMaoDeObra,
+        boolean ocultarDesconto) {}

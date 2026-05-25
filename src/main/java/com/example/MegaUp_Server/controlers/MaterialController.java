@@ -1,74 +1,64 @@
 package com.example.MegaUp_Server.controlers;
 
 import com.example.MegaUp_Server.dtos.MaterialDto;
-import com.example.MegaUp_Server.exceptions.ObjetoInexistenteException;
 import com.example.MegaUp_Server.models.Material;
 import com.example.MegaUp_Server.services.MaterialService;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.validation.constraints.NotNull;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/Material")
-@CrossOrigin("*")
+@RequestMapping("/materiais")
+@RequiredArgsConstructor
+@Log4j2
 public class MaterialController {
 
-    @Autowired
-    private MaterialService service;
+    private final MaterialService service;
 
-    @PostMapping("/New")
-    public ResponseEntity<String> save(@RequestBody @Valid MaterialDto dto, @RequestParam(name = "id") Long id){
-
-        try {
-            this.service.salvarMaterial(dto.transform(), id);
-            return ResponseEntity.status(HttpStatus.OK).build();
-        }
-        catch(RuntimeException e){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
+    @PostMapping("/servico/{servicoId}")
+    public ResponseEntity<String> save(@RequestBody @Valid MaterialDto dto,
+            @PathVariable(name = "servicoId") Long servicoId) {
+        log.info("POST /materiais/servico/{} - adicionando material [nome={}]", servicoId, dto.nome());
+        this.service.salvarMaterial(dto.transform(), servicoId);
+        log.info("POST /materiais/servico/{} - material adicionado com sucesso [nome={}]", servicoId, dto.nome());
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
-    @GetMapping("/Todos")
-    public ResponseEntity<List<Material>> listar(@RequestParam(name = "id") Long id){
-
-        try{
-            return ResponseEntity.status(HttpStatus.OK).body(service.listarTodos(id));
-        }
-        catch(Exception e){
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+    @GetMapping("/servico/{servicoId}")
+    public ResponseEntity<List<Material>> listar(@PathVariable(name = "servicoId") Long servicoId) {
+        log.info("GET /materiais/servico/{} - listando materiais", servicoId);
+        List<Material> result = service.listarTodos(servicoId);
+        log.info("GET /materiais/servico/{} - {} material(is) retornado(s)", servicoId, result.size());
+        return ResponseEntity.status(HttpStatus.OK).body(result);
     }
 
-    @PutMapping("/Edit")
-    public ResponseEntity<String> atualizar(@RequestBody @Valid MaterialDto dto
-            , @RequestParam(name = "id") @NotBlank Long id){
-
-        try{
-            service.atualizarMaterial(dto.transform(), id);
-            return ResponseEntity.status(HttpStatus.OK).build();
-        }
-        catch(ObjetoInexistenteException e){
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        }
-        catch(RuntimeException e){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
+    @PutMapping("/{id}")
+    public ResponseEntity<String> atualizar(@RequestBody @Valid MaterialDto dto,
+            @PathVariable(name = "id") @NotNull Long id) {
+        log.info("PUT /materiais/{} - atualizando material [nome={}]", id, dto.nome());
+        service.atualizarMaterial(dto.transform(), id);
+        log.info("PUT /materiais/{} - material atualizado com sucesso", id);
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 
-    @DeleteMapping("/Delete")
-    public ResponseEntity<String> remover(@RequestParam(name = "id") @NotBlank Long id){
-
-        try{
-            service.apagarMaterial(id);
-            return ResponseEntity.status(HttpStatus.OK).build();
-        }
-        catch(ObjetoInexistenteException e){
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        }
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> remover(@PathVariable(name = "id") @NotNull Long id) {
+        log.info("DELETE /materiais/{} - removendo material", id);
+        service.apagarMaterial(id);
+        log.info("DELETE /materiais/{} - material removido com sucesso", id);
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 }

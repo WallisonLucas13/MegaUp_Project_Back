@@ -1,23 +1,13 @@
 package com.example.MegaUp_Server.dtos;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
-@Getter
-@Setter
-@NoArgsConstructor
-public class Entrada {
+import java.math.BigDecimal;
 
-    public Entrada(String porcentagem, String valor, String formaPagamento) {
-        this.porcentagem = porcentagem;
-        this.valor = valor;
-        this.formaPagamento = formaPagamento;
-    }
-
-    private String porcentagem;
-
-    private String valor;
-
-    private String formaPagamento;
-}
+public record Entrada(
+        @NotNull @Min(0) @Max(100) Integer porcentagem,
+        BigDecimal valor,
+        @NotBlank String formaPagamento) {}

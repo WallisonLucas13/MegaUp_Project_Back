@@ -1,8 +1,11 @@
 package com.example.MegaUp_Server.services;
 
 import com.example.MegaUp_Server.dtos.Entrada;
+import com.example.MegaUp_Server.dtos.EntradaRequestDto;
+import com.example.MegaUp_Server.dtos.EtapaResponseDto;
 import com.example.MegaUp_Server.dtos.OrcamentoAdressTo;
 import com.example.MegaUp_Server.dtos.PagamentoFinal;
+import com.example.MegaUp_Server.dtos.ServicoResponseDto;
 import com.example.MegaUp_Server.dtos.ValoresServico;
 import com.example.MegaUp_Server.enums.FormaPagamento;
 import com.example.MegaUp_Server.exceptions.ObjetoInexistenteException;
@@ -10,69 +13,86 @@ import com.example.MegaUp_Server.models.Etapa;
 import com.example.MegaUp_Server.models.Material;
 import com.example.MegaUp_Server.models.Servico;
 import com.example.MegaUp_Server.repositories.ServicoRepository;
-import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
+@Log4j2
 public class ServicoService {
 
-    @Autowired
-    private ServicoRepository repository;
+    private static final BigDecimal ONE_HUNDRED = new BigDecimal("100");
+    private static final int MONEY_SCALE = 2;
+    private static final RoundingMode MONEY_ROUNDING = RoundingMode.HALF_UP;
 
-    @Autowired
-    private com.example.MegaUp_Server.services.ClienteService clienteService;
+    private final ServicoRepository repository;
+    private final ClienteService clienteService;
+    private final SendMailService sendMailService;
 
-    @Autowired
-    private com.example.MegaUp_Server.services.SendMailService sendMailService;
-
-    @Transactional
-    public List<Servico> listarTodos(Long idCliente) throws RuntimeException{
-        return clienteService.listarTodosServicos(idCliente);
+    @Transactional(readOnly = true)
+    public List<ServicoResponseDto> listarTodos(Long idCliente) throws RuntimeException{
+        // S3: mapeamento para DTO ocorre dentro da transação para garantir inicialização das coleções lazy
+        return clienteService.listarTodosServicos(idCliente)
+                .stream()
+                .map(ServicoResponseDto::from)
+                .collect(Collectors.toList());
     }
 
     @Transactional
     public void salvarServico(Servico servico, Long idCliente) throws RuntimeException{
-
+        log.info("Salvando serviço [nome={}] para cliente [id={}]", servico.getNome(), idCliente);
         this.clienteService.addServicoInClient(servico, idCliente);
+        log.info("Serviço salvo com sucesso [nome={}, clienteId={}]", servico.getNome(), idCliente);
     }
 
     @Transactional
     public void atualizarServico(Servico servico, Long id) throws ObjetoInexistenteException{
+        log.info("Atualizando serviço [id={}]", id);
+        Servico existente = repository.findById(id)
+                .orElseThrow(() -> new ObjetoInexistenteException("Serviço Inexistente!"));
 
-        boolean exist = repository.existsById(id);
-
-        if(!exist){throw new ObjetoInexistenteException("Servico Inexistente!");}
-
-        servico.setId(id);
-        repository.save(servico);
+        // Atualiza APENAS os campos editáveis pelo usuário.
+        // Nunca substituir a entidade inteira: zeraria maoDeObra, materiais, valorFinal, etc.
+        existente.setNome(servico.getNome());
+        existente.setDesc(servico.getDesc());
+        repository.save(existente);
+        log.info("Serviço atualizado com sucesso [id={}, nome={}]", id, existente.getNome());
     }
     @Transactional
     public void apagarServico(Long id) throws ObjetoInexistenteException{
-
+        log.info("Removendo serviço [id={}]", id);
         if(!repository.existsById(id)){
             throw new ObjetoInexistenteException("Serviço Inexistente!");
         }
-
         repository.deleteById(id);
+        log.info("Serviço removido com sucesso [id={}]", id);
     }
 
     @Transactional
     public void addMaterialInServico(Material material, Long idServico){
 
         Servico servico = repository.findById(idServico)
-                .orElseThrow(() -> new ObjetoInexistenteException("Inexistente"));;
+                .orElseThrow(() -> new ObjetoInexistenteException("Inexistente"));
 
-        List<Material> novaLista = servico.getMateriais();
+        material.setValor(normalize(material.getValor()));
+        material.setServico(servico);
+
+        List<Material> novaLista = servico.getMateriais() == null
+            ? new ArrayList<>()
+            : new ArrayList<>(servico.getMateriais());
         novaLista.add(material);
         servico.setMateriais(novaLista);
         servico.setValorTotalMateriais(calcularValorTotalMateriais(servico.getMateriais()));
-        servico.setValorFinal(servico.getMaoDeObra() + servico.getValorTotalMateriais());
-        servico.setValorEntrada(String.valueOf((servico.getValorFinal()*Integer.parseInt(servico.getPorcentagemEntrada()))/100));
-        servico.setValorPagamentoFinal(String.valueOf(servico.getValorFinal() - Integer.parseInt(servico.getValorEntrada())));
+        recalcValores(servico);
         repository.save(servico);
 
     }
@@ -80,23 +100,18 @@ public class ServicoService {
     @Transactional
     public void apagarMaterialInServico(Material material){
 
-        List<Servico> todos = repository.findAll();
+        Servico servico = material.getServico();
+        if (servico == null) return;
 
-        for(int i=0; i<todos.size(); i++){
-
-            if(todos.get(i).getMateriais().contains(material)){
-
-                List<Material> materiais = todos.get(i).getMateriais();
-                materiais.remove(material);
-                todos.get(i).setValorTotalMateriais(calcularValorTotalMateriais(materiais));
-                todos.get(i).setValorFinal(todos.get(i).getValorTotalMateriais() + todos.get(i).getMaoDeObra());
-                todos.get(i).setValorEntrada(String.valueOf((todos.get(i).getValorFinal()*Integer.parseInt(todos.get(i).getPorcentagemEntrada()))/100));
-                todos.get(i).setValorPagamentoFinal(String.valueOf(todos.get(i).getValorFinal() - Integer.parseInt(todos.get(i).getValorEntrada())));
-                repository.save(todos.get(i));
-            }
-        }
+        List<Material> materiais = new ArrayList<>(servico.getMateriais());
+        materiais.remove(material);
+        servico.setMateriais(materiais);
+        servico.setValorTotalMateriais(calcularValorTotalMateriais(materiais));
+        recalcValores(servico);
+        repository.save(servico);
     }
 
+    @Transactional(readOnly = true)
     public List<Material> listarTodosMateriais(Long id){
         Servico servico = repository.findById(id)
                 .orElseThrow(() -> new ObjetoInexistenteException("Inexistente"));
@@ -104,144 +119,210 @@ public class ServicoService {
         return servico.getMateriais();
     }
 
-    public int calcularValorTotalMateriais(List<Material> materiais){
+    private BigDecimal calcularValorTotalMateriais(List<Material> materiais){
 
-        int valor = 0;
+        BigDecimal valor = BigDecimal.ZERO;
 
-        for (int i = 0; i < materiais.size(); i++) {
-            valor += materiais.get(i).getValor() * materiais.get(i).getQuant();
+        if(materiais == null || materiais.isEmpty()){
+            return valor;
         }
 
-        return valor;
+        for (int i = 0; i < materiais.size(); i++) {
+            BigDecimal valorMaterial = normalize(materiais.get(i).getValor());
+            BigDecimal quant = BigDecimal.valueOf(materiais.get(i).getQuant());
+            valor = valor.add(valorMaterial.multiply(quant));
+        }
+
+        return normalize(valor);
     }
 
     @Transactional
-    public void setMaoDeObra(int maoDeObra, Long id){
+    public void setMaoDeObra(BigDecimal maoDeObra, Long id){
+        log.info("Definindo mão de obra do serviço [id={}, valor={}]", id, maoDeObra);
         Servico servico = repository.findById(id)
                 .orElseThrow(() -> new ObjetoInexistenteException("Inexistente"));
 
-        servico.setMaoDeObra(maoDeObra);
-        servico.setValorFinal(servico.getMaoDeObra() + servico.getValorTotalMateriais());
-        servico.setValorEntrada(String.valueOf((servico.getValorFinal()*Integer.parseInt(servico.getPorcentagemEntrada()))/100));
-        servico.setValorPagamentoFinal(String.valueOf(servico.getValorFinal() - Integer.parseInt(servico.getValorEntrada())));
+        servico.setMaoDeObra(normalize(maoDeObra));
+        recalcValores(servico);
         repository.save(servico);
+        log.info("Mão de obra definida com sucesso [id={}, valor={}]", id, servico.getMaoDeObra());
     }
 
-    @Transactional
-    public ValoresServico getValores(Long id){
+    @Transactional(readOnly = true)
+    public ValoresServico getValores(Long id) {
 
         Servico servico = repository.findById(id)
                 .orElseThrow(() -> new ObjetoInexistenteException("Inexistente"));
 
+        // Calcula os valores sem mutar a entidade gerenciada (evita UPDATE silencioso via dirty-check)
+        BigDecimal maoDeObra     = normalize(servico.getMaoDeObra());
+        BigDecimal materiais     = normalize(servico.getValorTotalMateriais());
+        BigDecimal subtotal      = maoDeObra.add(materiais);
+
+        int descontoPercent      = normalizePercent(servico.getDesconto());
+        BigDecimal descontoRate  = BigDecimal.valueOf(descontoPercent).divide(ONE_HUNDRED, 4, MONEY_ROUNDING);
+        BigDecimal valorFinal    = subtotal.subtract(subtotal.multiply(descontoRate)).setScale(MONEY_SCALE, MONEY_ROUNDING);
+
+        int entradaPercent       = normalizePercent(servico.getPorcentagemEntrada());
+        BigDecimal entradaRate   = BigDecimal.valueOf(entradaPercent).divide(ONE_HUNDRED, 4, MONEY_ROUNDING);
+        BigDecimal valorEntrada  = valorFinal.multiply(entradaRate).setScale(MONEY_SCALE, MONEY_ROUNDING);
+        BigDecimal valorPgtoFinal = valorFinal.subtract(valorEntrada).setScale(MONEY_SCALE, MONEY_ROUNDING);
 
         ValoresServico valoresServico = new ValoresServico();
-        valoresServico.setValor(servico.getMaoDeObra());
-        valoresServico.setValorTotalMateriais(servico.getValorTotalMateriais());
-        aplicarDesconto(servico.getId(), servico.getDesconto());
-        valoresServico.setValorFinal(servico.getValorFinal());
+        valoresServico.setValor(maoDeObra);
+        valoresServico.setValorTotalMateriais(materiais);
+        valoresServico.setValorFinal(valorFinal);
         valoresServico.setDesconto(servico.getDesconto());
-        valoresServico.setEntrada(new Entrada(servico.getPorcentagemEntrada(), servico.getValorEntrada(), servico.getFormaPagamentoEntrada().name()));
-        valoresServico.setPagamentoFinal(new PagamentoFinal(servico.getValorPagamentoFinal(), servico.getFormaPagamentoFinal().name()));
-        List<Etapa> etapas = servico.getEtapas();
+        valoresServico.setEntrada(new Entrada(
+                servico.getPorcentagemEntrada(),
+                valorEntrada,
+                servico.getFormaPagamentoEntrada().name()));
+        valoresServico.setPagamentoFinal(new PagamentoFinal(
+                valorPgtoFinal,
+                servico.getFormaPagamentoFinal().name()));
+
+        List<Etapa> etapas = servico.getEtapas() == null
+                ? new ArrayList<>()
+                : new ArrayList<>(servico.getEtapas());
         etapas.sort(Comparator.comparingLong(Etapa::getIden));
-        servico.setEtapas(etapas);
-        valoresServico.setEtapas(servico.getEtapas());
+        valoresServico.setEtapas(etapas.stream().map(EtapaResponseDto::from).toList());
+
         return valoresServico;
     }
 
     @Transactional
     public void aplicarDesconto(Long id, int desconto){
-
+        log.info("Aplicando desconto de {}% ao serviço [id={}]", desconto, id);
         Servico servico = repository.findById(id)
                 .orElseThrow(() -> new ObjetoInexistenteException("Inexistente"));
 
-        servico.setValorFinal(servico.getMaoDeObra() + servico.getValorTotalMateriais());
-
-        double desc = ((double) desconto / 100) * servico.getValorFinal();
-
-        servico.setValorFinal((int) (servico.getValorFinal() - desc));
-
         servico.setDesconto(desconto);
-        servico.setValorEntrada(String.valueOf((servico.getValorFinal()*Integer.parseInt(servico.getPorcentagemEntrada()))/100));
-        servico.setValorPagamentoFinal(String.valueOf(servico.getValorFinal() - Integer.parseInt(servico.getValorEntrada())));
+        recalcValores(servico);
         repository.save(servico);
+        log.info("Desconto de {}% aplicado com sucesso ao serviço [id={}]", desconto, id);
     }
 
     @Transactional
     public void sendOrcamento(Long id, OrcamentoAdressTo adress){
-
+        log.info("Enviando orçamento do serviço [id={}]", id);
         Servico servico = repository.findById(id)
-                .orElseThrow(() -> new ObjetoInexistenteException("Inexistente"));;
+                .orElseThrow(() -> new ObjetoInexistenteException("Inexistente"));
 
         sendMailService.createMailAndSendWithAttachments(adress, servico);
+        log.info("Orçamento do serviço [id={}] enviado com sucesso", id);
     }
 
     @Transactional
-    public void sendEntrada(Entrada entrada, Long idServico){
-
+    public void sendEntrada(EntradaRequestDto entrada, Long idServico){
+        log.info("Definindo entrada do serviço [id={}, porcentagem={}%]", idServico, entrada.porcentagem());
         Servico servico = repository.findById(idServico)
                 .orElseThrow(() -> new ObjetoInexistenteException("Inexistente"));
 
-        servico.setValorFinal(servico.getMaoDeObra() + servico.getValorTotalMateriais());
-
-        servico.setPorcentagemEntrada(String.valueOf(entrada.getPorcentagem()));
-        servico.setValorEntrada(String.valueOf((servico.getValorFinal()*Integer.parseInt(entrada.getPorcentagem()))/100));
-        servico.setFormaPagamentoEntrada(formatarFormaPagamento(entrada.getFormaPagamento()));
-        servico.setValorPagamentoFinal(String.valueOf(servico.getValorFinal() - Integer.parseInt(servico.getValorEntrada())));
+        servico.setPorcentagemEntrada(entrada.porcentagem());
+        servico.setFormaPagamentoEntrada(formatarFormaPagamento(entrada.formaPagamento()));
+        recalcValores(servico);
         repository.save(servico);
+        log.info("Entrada definida com sucesso [id={}, porcentagem={}%]", idServico, entrada.porcentagem());
     }
 
     @Transactional
     public void sendFormaPagamentoFinal(PagamentoFinal pagamentoFinal, Long idServico){
-
+        log.info("Definindo pagamento final do serviço [id={}, forma={}]", idServico, pagamentoFinal.formaPagamento());
         Servico servico = repository.findById(idServico)
                 .orElseThrow(() -> new ObjetoInexistenteException("Inexistente"));
 
-        servico.setFormaPagamentoFinal(formatarFormaPagamento(pagamentoFinal.getFormaPagamento()));
+        servico.setFormaPagamentoFinal(formatarFormaPagamento(pagamentoFinal.formaPagamento()));
+        repository.save(servico);
+        log.info("Pagamento final definido com sucesso [id={}]", idServico);
+    }
+
+    @Transactional
+    public void recalcularValoresServico(Long idServico){
+        Servico servico = repository.findById(idServico)
+                .orElseThrow(() -> new ObjetoInexistenteException("Inexistente"));
+
+        servico.setValorTotalMateriais(calcularValorTotalMateriais(servico.getMateriais()));
+        recalcValores(servico);
         repository.save(servico);
     }
 
     @Transactional
     public void addEtapa(Long idServico, Etapa etapa) throws IllegalArgumentException{
-
-        Servico servico = repository.findById(idServico)
+        log.info("Adicionando etapa ao serviço [id={}, valor={}]", idServico, etapa.getValor());
+        Servico servico = repository.findByIdForUpdate(idServico)
                 .orElseThrow(() -> new ObjetoInexistenteException("Inexistente"));
 
         if(servico.getEtapas() == null){
-            servico.setEtapas(List.of());
+            servico.setEtapas(new ArrayList<>());
         }
 
-        int tetoGastos = Integer.parseInt(servico.getValorPagamentoFinal()) - calcEtapas(servico.getEtapas());
+        BigDecimal tetoGastos = normalize(servico.getValorPagamentoFinal()).subtract(calcEtapas(servico.getEtapas()));
+        BigDecimal valorEtapa = normalize(etapa.getValor());
+        etapa.setValor(valorEtapa);
 
-        if(Integer.parseInt(etapa.getValor()) <= tetoGastos){
-            List<Etapa> update = servico.getEtapas();
-            etapa.setIden(update.size()+1L);
+        if(valorEtapa.compareTo(tetoGastos) <= 0){
+            List<Etapa> update = new ArrayList<>(servico.getEtapas());
+            etapa.setIden(update.size() + 1L);
             update.add(etapa);
             update.sort(Comparator.comparingLong(Etapa::getIden));
 
             servico.setEtapas(update);
             repository.save(servico);
+            log.info("Etapa adicionada com sucesso ao serviço [id={}]", idServico);
             return;
         }
 
+        log.warn("Valor da etapa [{}] ultrapassou o teto disponível [{}] no serviço [id={}]",
+                valorEtapa, tetoGastos, idServico);
         throw new IllegalArgumentException("Valor máximo ultrapassado!");
 
     }
 
-    private int calcEtapas(List<Etapa> etapas){
-        return etapas.stream().map(etapa -> {return Integer.parseInt(etapa.getValor());})
-                .reduce(0, (a, b) -> a+b);
+    private BigDecimal calcEtapas(List<Etapa> etapas){
+        if(etapas == null || etapas.isEmpty()){
+            return BigDecimal.ZERO;
+        }
+        return etapas.stream()
+                .map(etapa -> normalize(etapa.getValor()))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    private FormaPagamento formatarFormaPagamento(String forma){
-
-        switch (forma){
-            case "PIX": return FormaPagamento.PIX;
-            case "DEBITO": return FormaPagamento.DEBITO;
-            case "CREDITO": return FormaPagamento.CREDITO;
-            case "DINHEIRO": return FormaPagamento.DINHEIRO;
-
-            default: return FormaPagamento.NENHUMA;
+    private FormaPagamento formatarFormaPagamento(String forma) {
+        if (forma == null) return FormaPagamento.NENHUMA;
+        try {
+            return FormaPagamento.valueOf(forma.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return FormaPagamento.NENHUMA;
         }
+    }
+
+    private BigDecimal normalize(BigDecimal value){
+        if(value == null){
+            return BigDecimal.ZERO.setScale(MONEY_SCALE, MONEY_ROUNDING);
+        }
+        return value.setScale(MONEY_SCALE, MONEY_ROUNDING);
+    }
+
+    private int normalizePercent(Integer percent){
+        return percent == null ? 0 : percent;
+    }
+
+    private void recalcValores(Servico servico){
+        BigDecimal maoDeObra = normalize(servico.getMaoDeObra());
+        BigDecimal materiais = normalize(servico.getValorTotalMateriais());
+        BigDecimal subtotal = maoDeObra.add(materiais);
+
+        int descontoPercent = normalizePercent(servico.getDesconto());
+        BigDecimal descontoRate = BigDecimal.valueOf(descontoPercent).divide(ONE_HUNDRED, 4, MONEY_ROUNDING);
+        BigDecimal valorFinal = subtotal.subtract(subtotal.multiply(descontoRate)).setScale(MONEY_SCALE, MONEY_ROUNDING);
+
+        int entradaPercent = normalizePercent(servico.getPorcentagemEntrada());
+        BigDecimal entradaRate = BigDecimal.valueOf(entradaPercent).divide(ONE_HUNDRED, 4, MONEY_ROUNDING);
+        BigDecimal valorEntrada = valorFinal.multiply(entradaRate).setScale(MONEY_SCALE, MONEY_ROUNDING);
+        BigDecimal valorPagamentoFinal = valorFinal.subtract(valorEntrada).setScale(MONEY_SCALE, MONEY_ROUNDING);
+
+        servico.setValorFinal(valorFinal);
+        servico.setValorEntrada(valorEntrada);
+        servico.setValorPagamentoFinal(valorPagamentoFinal);
     }
 }

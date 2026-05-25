@@ -1,21 +1,19 @@
 package com.example.MegaUp_Server.dtos;
 
 import com.example.MegaUp_Server.models.Material;
-import lombok.Getter;
-import lombok.Setter;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 
-@Setter
-@Getter
-public class MaterialDto {
+import java.math.BigDecimal;
 
-    private String nome;
+public record MaterialDto(
+        @NotBlank String nome,
+        @Min(1) int quant,
+        @DecimalMin(value = "0.01", inclusive = true) @Digits(integer = 17, fraction = 2) BigDecimal valor) {
 
-    private int quant;
-
-    private int valor;
-
-    public Material transform(){
+    public Material transform() {
         return new Material(nome, quant, valor);
     }
-
 }
